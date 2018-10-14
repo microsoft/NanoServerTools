@@ -4,8 +4,11 @@ SETLOCAL EnableDelayedExpansion
 set LOCAL_BIN_STAGING_DIR=BinariesToCopy
 set VS_REMOTE_DEBUGGER_BIN="%VSINSTALLDIR%CoreCon\Binaries\Phone Tools\Debugger\target\x64"
 set VS_REMOTE_DEBUGGER_LIB="%VSINSTALLDIR%CoreCon\Binaries\Phone Tools\Debugger\target\lib"
-set VS_CRT_REDIST_REL="%VcToolsRedistDir%onecore\x64\Microsoft.VC150.CRT"
-set VS_CRT_REDIST_DBG="%VcToolsRedistDir%onecore\debug_nonredist\x64\Microsoft.VC150.DebugCRT"
+set VS_CRT_REDIST_REL[0]="%VcToolsRedistDir%onecore\x64\Microsoft.VC141.CRT"
+set VS_CRT_REDIST_REL[1]="%VcToolsRedistDir%onecore\x64\Microsoft.VC150.CRT"
+set VS_CRT_REDIST_DBG[0]="%VcToolsRedistDir%onecore\debug_nonredist\x64\Microsoft.VC141.DebugCRT"
+set VS_CRT_REDIST_DBG[1]="%VcToolsRedistDir%onecore\debug_nonredist\x64\Microsoft.VC150.DebugCRT"
+
 set UCRT_DLL_PATH="%WindowsSdkBinPath%\x64\ucrt"
 
 set VS_OUT_DIR=%1
@@ -50,17 +53,25 @@ if %ERRORLEVEL% GTR 8 (
     exit /b 1
 )
 
-call robocopy.exe %VS_CRT_REDIST_DBG% %LOCAL_BIN_STAGING_DIR% /S /E >nul
-if %ERRORLEVEL% GTR 8 (
-    echo Error while staging debugger binaries. Exiting...
-    exit /b 1
+for /L %%n in (0,1,1) do (
+    call robocopy.exe !VS_CRT_REDIST_DBG[%%n]! %LOCAL_BIN_STAGING_DIR% /S /E >nul
+    if !ERRORLEVEL! LEQ 8 (
+        goto StageResistDbgOk
+    )
 )
+echo Error while staging debugger binaries. Exiting...
+exit /b 1
+:StageResistDbgOk
 
-call robocopy.exe %VS_CRT_REDIST_REL% %LOCAL_BIN_STAGING_DIR% /S /E >nul
-if %ERRORLEVEL% GTR 8 (
-    echo Error while staging debugger binaries. Exiting...
-    exit /b 1
+for /L %%n in (0,1,1) do (
+    call robocopy.exe !VS_CRT_REDIST_REL[%%n]! %LOCAL_BIN_STAGING_DIR% /S /E >nul
+    if !ERRORLEVEL! LEQ 8 (
+        goto StageResistRelOk
+    )
 )
+echo Error while staging debugger binaries. Exiting...
+exit /b 1
+:StageResistRelOk
 
 call robocopy.exe %UCRT_DLL_PATH% %LOCAL_BIN_STAGING_DIR% /S /E >nul
 if %ERRORLEVEL% GTR 8 (
