@@ -1,6 +1,6 @@
 # escape=`
 
-FROM microsoft/nanoserver
+FROM mcr.microsoft.com/nanoserver
 
 ARG VS_REMOTE_DEBUGGER_PATH
 ARG VS_OUT_DIR
